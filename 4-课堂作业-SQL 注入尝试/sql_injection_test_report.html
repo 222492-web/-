@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL注入安全性测试报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin: 20px 0 15px;
+        }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .code-block {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        
+        .code-block pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .highlight {
+            background-color: #ffe8c9;
+            padding: 15px;
+            border-left: 4px solid #e67e22;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .note {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .steps {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .steps li {
+            margin-bottom: 10px;
+        }
+        
+        .screenshot-placeholder {
+            border: 2px dashed #ddd;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+        
+        .screenshot-placeholder p {
+            color: #666;
+            text-align: center;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .results-table th, .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .results-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .results-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .security-tips {
+            background-color: #f0f9e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .security-tips h3 {
+            color: #27ae60;
+        }
+        
+        .security-tips ul {
+            margin-left: 20px;
+        }
+        
+        .security-tips li {
+            margin-bottom: 8px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SQL注入安全性测试报告</h1>
+            <p>Flask应用登录接口的SQL注入防护测试</p>
+        </header>
+        
+        <div class="section">
+            <h2>1. 测试概述</h2>
+            <p>本次测试旨在验证Flask应用登录接口对SQL注入攻击的防护能力。SQL注入是一种常见的Web安全漏洞，攻击者通过在输入字段中插入恶意SQL代码，可能导致未授权数据访问、数据泄露或数据库损坏。</p>
+            
+            <div class="highlight">
+                <h3>测试目标</h3>
+                <p>验证登录接口是否能够正确处理包含SQL注入代码的输入，特别是测试载荷 <code>' OR 1=1 --</code>，这是一种经典的SQL注入尝试，旨在绕过身份验证机制。</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>2. 测试环境</h2>
+            <table class="results-table">
+                <tr>
+                    <th>环境项</th>
+                    <th>详情</th>
+                </tr>
+                <tr>
+                    <td>操作系统</td>
+                    <td>Windows</td>
+                </tr>
+                <tr>
+                    <td>开发工具</td>
+                    <td>VS Code</td>
+                </tr>
+                <tr>
+                    <td>编程语言</td>
+                    <td>Python 3.7+</td>
+                </tr>
+                <tr>
+                    <td>测试工具</td>
+                    <td>Python requests库</td>
+                </tr>
+                <tr>
+                    <td>应用环境</td>
+                    <td>Flask应用（运行在 http://127.0.0.1:5000）</td>
+                </tr>
+            </table>
+            
+            <div class="note">
+                <p><strong>注意：</strong>测试前请确保Flask应用已启动并运行在指定地址。</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>3. 测试脚本开发</h2>
+            
+            <h3>3.1 测试脚本概述</h3>
+            <p>创建了 <code>test_sql_injection.py</code> 文件，实现了SQL注入测试功能，包括：</p>
+            <ul class="steps">
+                <li>向Flask登录接口发送包含SQL注入代码的请求</li>
+                <li>验证接口响应是否符合安全预期</li>
+                <li>提供详细的测试日志和结果分析</li>
+            </ul>
+            
+            <h3>3.2 测试代码实现</h3>
+            <div class="code-block">
+                <pre><code>import requests
+
+def test_sql_injection():
+    # 目标URL - Flask登录接口
+    url = "http://127.0.0.1:5000/login"
+    
+    # SQL注入测试载荷
+    payload = {
+        "username": "' OR 1=1 --",
+        "password": "xxx"
+    }
+    
+    try:
+        # 发送POST请求，包含SQL注入尝试
+        print(f"正在向 {url} 发送SQL注入测试请求...")
+        print(f"测试载荷: {payload}")
+        
+        res = requests.post(url, json=payload, timeout=10)
+        
+        # 打印响应信息用于调试
+        print(f"响应状态码: {res.status_code}")
+        print(f"响应内容: {res.text}")
+        
+        # 安全验证：检查是否返回400错误或包含错误信息
+        # 这表示系统正确识别并拒绝了SQL注入尝试
+        assert res.status_code == 400 or "error" in res.text.lower(), \
+            "SQL注入测试失败: 系统可能易受SQL注入攻击!"
+        
+        print("✓ SQL注入测试通过: 系统正确处理了SQL注入尝试")
+        return True
+        
+    except requests.exceptions.RequestException as e:
+        # 处理连接错误等网络问题
+        print(f"✗ 测试请求失败: {str(e)}")
+        print("注意: 请确保Flask应用正在运行且可访问")
+        return False
+    except AssertionError as e:
+        # 处理测试断言失败（可能存在安全漏洞）
+        print(f"✗ {str(e)}")
+        return False
+
+if __name__ == "__main__":
+    # 当直接运行脚本时执行测试
+    print("===== SQL注入安全性测试 =====")
+    print("测试目的: 验证登录接口是否能够抵御基本的SQL注入攻击")
+    print("测试方法: 使用' OR 1=1 -- 作为用户名进行登录尝试")
+    print("\n开始测试...")
+    
+    test_sql_injection()
+    
+    print("\n===== 测试完成 =====")
+    print("安全建议:")
+    print("1. 使用参数化查询或ORM框架处理数据库操作")
+    print("2. 对所有用户输入进行严格验证和过滤")
+    print("3. 限制数据库用户权限，遵循最小权限原则")
+    print("4. 考虑使用Web应用防火墙(WAF)提供额外保护")</code></pre>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>4. 测试执行方法</h2>
+            
+            <h3>4.1 准备工作</h3>
+            <ol class="steps">
+                <li>确保Python环境已安装</li>
+                <li>安装必要的依赖：<code>pip install requests</code></li>
+                <li>启动Flask应用，确保其运行在 <code>http://127.0.0.1:5000</code></li>
+            </ol>
+            
+            <h3>4.2 运行测试</h3>
+            <div class="code-block">
+                <pre><code># 在终端中执行以下命令
+python test_sql_injection.py</code></pre>
+            </div>
+            
+            <div class="note">
+                <p><strong>提示：</strong>也可以通过VS Code直接运行该Python文件。</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>5. 测试结果分析</h2>
+            
+            <h3>5.1 预期结果</h3>
+            <p>当系统正确实现了SQL注入防护时，应该出现以下情况之一：</p>
+            <ul class="steps">
+                <li>返回400错误状态码，表示请求参数无效</li>
+                <li>返回包含错误信息的响应</li>
+                <li>拒绝登录并返回适当的错误消息</li>
+            </ul>
+            
+            <h3>5.2 可能的测试结果</h3>
+            
+            <div class="highlight">
+                <h4>情况一：测试通过（安全）</h4>
+                <p>如果系统正确处理了SQL注入尝试，将看到类似以下输出：</p>
+                <div class="code-block">
+                    <pre><code>===== SQL注入安全性测试 =====
+测试目的: 验证登录接口是否能够抵御基本的SQL注入攻击
+测试方法: 使用' OR 1=1 -- 作为用户名进行登录尝试
+
+开始测试...
+正在向 http://127.0.0.1:5000/login 发送SQL注入测试请求...
+测试载荷: {'username': "' OR 1=1 --", 'password': 'xxx'}
+响应状态码: 400
+响应内容: {"error": "无效的用户名格式"}
+✓ SQL注入测试通过: 系统正确处理了SQL注入尝试
+
+===== 测试完成 =====</code></pre>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <h4>情况二：测试失败（存在安全漏洞）</h4>
+                <p>如果系统易受SQL注入攻击，将看到类似以下输出：</p>
+                <div class="code-block">
+                    <pre><code>===== SQL注入安全性测试 =====
+测试目的: 验证登录接口是否能够抵御基本的SQL注入攻击
+测试方法: 使用' OR 1=1 -- 作为用户名进行登录尝试
+
+开始测试...
+正在向 http://127.0.0.1:5000/login 发送SQL注入测试请求...
+测试载荷: {'username': "' OR 1=1 --", 'password': 'xxx'}
+响应状态码: 200
+响应内容: {"message": "登录成功"}
+✗ SQL注入测试失败: 系统可能易受SQL注入攻击!</code></pre>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <h4>情况三：连接失败</h4>
+                <p>如果Flask应用未运行或无法访问，将看到错误信息：</p>
+                <div class="code-block">
+                    <pre><code>===== SQL注入安全性测试 =====
+测试目的: 验证登录接口是否能够抵御基本的SQL注入攻击
+测试方法: 使用' OR 1=1 -- 作为用户名进行登录尝试
+
+开始测试...
+正在向 http://127.0.0.1:5000/login 发送SQL注入测试请求...
+测试载荷: {'username': "' OR 1=1 --", 'password': 'xxx'}
+✗ 测试请求失败: Connection refused
+注意: 请确保Flask应用正在运行且可访问</code></pre>
+                </div>
+            </div>
+            
+            <h3>5.3 结果分析</h3>
+            <p>根据测试结果，可以得出以下结论：</p>
+            <ul class="steps">
+                <li><strong>测试通过：</strong>系统正确实现了输入验证或使用了参数化查询，能够有效抵御SQL注入攻击。</li>
+                <li><strong>测试失败：</strong>系统可能存在SQL注入漏洞，需要立即修复，应检查数据库查询实现方式。</li>
+                <li><strong>连接失败：</strong>请检查Flask应用是否正确启动并运行在指定地址。</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>6. 安全建议</h2>
+            
+            <div class="security-tips">
+                <h3>防止SQL注入的最佳实践</h3>
+                <ol>
+                    <li><strong>使用参数化查询：</strong>始终使用参数化查询或预处理语句，避免直接拼接SQL语句。</li>
+                    <li><strong>使用ORM框架：</strong>考虑使用SQLAlchemy等ORM框架，它们会自动处理参数化查询。</li>
+                    <li><strong>输入验证与过滤：</strong>对所有用户输入进行严格的验证和过滤，限制输入格式。</li>
+                    <li><strong>最小权限原则：</strong>数据库用户应该只拥有完成工作所需的最小权限。</li>
+                    <li><strong>使用WAF：</strong>考虑部署Web应用防火墙，提供额外的安全层。</li>
+                    <li><strong>定期安全审计：</strong>定期进行代码审查和安全测试，及时发现并修复漏洞。</li>
+                </ol>
+            </div>
+            
+            <div class="highlight">
+                <h3>Flask应用中的安全实现示例</h3>
+                <div class="code-block">
+                    <pre><code># 使用参数化查询的安全实现示例
+from flask import Flask, request, jsonify
+import sqlite3
+
+app = Flask(__name__)
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    # 输入验证
+    if not username or not password:
+        return jsonify({'error': '用户名和密码不能为空'}), 400
+    
+    # 使用参数化查询（安全）
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+    
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user:
+        return jsonify({'message': '登录成功'}), 200
+    else:
+        return jsonify({'error': '用户名或密码错误'}), 401</code></pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>7. 总结与结论</h2>
+            <p>SQL注入是一种严重的安全威胁，但通过正确的编码实践可以有效防止。本次测试提供了一个简单但有效的方法来验证Flask应用的SQL注入防护能力。</p>
+            
+            <p>在实际开发中，应始终优先考虑安全因素，采用参数化查询、输入验证等安全措施，确保应用能够抵御常见的安全攻击。</p>
+        </div>
+        
+        <div class="section">
+            <h2>附录</h2>
+            
+            <h3>常见SQL注入测试载荷</h3>
+            <div class="code-block">
+                <pre><code># 常见的SQL注入测试载荷
+' OR 1=1 --
+' OR '1'='1
+admin' --
+' UNION SELECT username, password FROM users --
+' OR 1=1 LIMIT 1 --</code></pre>
+            </div>
+            
+            <h3>可能遇到的问题及解决方案</h3>
+            <table class="results-table">
+                <tr>
+                    <th>问题</th>
+                    <th>解决方案</th>
+                </tr>
+                <tr>
+                    <td>连接被拒绝</td>
+                    <td>确保Flask应用正在运行，并且地址和端口正确</td>
+                </tr>
+                <tr>
+                    <td>请求超时</td>
+                    <td>检查网络连接或增加timeout参数值</td>
+                </tr>
+                <tr>
+                    <td>测试失败（存在漏洞）</td>
+                    <td>立即修复代码，使用参数化查询替代字符串拼接</td>
+                </tr>
+            </table>
+        </div>
+        
+        <footer>
+            <p>© 2024 SQL注入安全性测试报告 | 由安全测试工具自动生成</p>
+        </footer>
+    </div>
+</body>
+</html>

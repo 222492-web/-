@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统弹性与可靠性测试报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.2em;
+        }
+        
+        h2 {
+            color: #3498db;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            font-size: 1.6em;
+        }
+        
+        h3 {
+            color: #2980b9;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-bottom: 20px;
+            margin-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+        
+        .code-block {
+            background-color: #f8f8f8;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+        
+        .highlight {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .note {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        
+        .warning {
+            background-color: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #dc3545;
+            margin: 20px 0;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .image-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .image-caption {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .test-script {
+            margin-bottom: 30px;
+        }
+        
+        .two-column {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            gap: 20px;
+        }
+        
+        .column {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            h2 {
+                font-size: 1.4em;
+            }
+            
+            h3 {
+                font-size: 1.2em;
+            }
+            
+            .two-column {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>系统弹性与可靠性测试报告</h1>
+        
+        <h2>1. 测试概述</h2>
+        <p>本测试报告旨在详细记录系统弹性和可靠性测试的过程、方法和结果。系统弹性测试主要验证在数据库故障等异常情况下，系统能否正确识别错误并在故障恢复后恢复正常运行；而系统可靠性测试则通过发送大量请求，验证系统在高负载情况下的稳定性和响应能力。</p>
+        
+        <div class="highlight">
+            <h3>测试目标</h3>
+            <ul>
+                <li>验证系统在数据库故障时的错误处理能力</li>
+                <li>测试系统在数据库恢复后的自动恢复能力</li>
+                <li>评估系统在高负载下的稳定性和性能表现</li>
+                <li>收集系统响应时间、错误率等关键性能指标</li>
+            </ul>
+        </div>
+        
+        <h2>2. 测试环境</h2>
+        <table>
+            <tr>
+                <th>项目</th>
+                <th>描述</th>
+            </tr>
+            <tr>
+                <td>操作系统</td>
+                <td>Windows 10/11</td>
+            </tr>
+            <tr>
+                <td>开发工具</td>
+                <td>Visual Studio Code</td>
+            </tr>
+            <tr>
+                <td>Python版本</td>
+                <td>3.7+</td>
+            </tr>
+            <tr>
+                <td>测试依赖</td>
+                <td>requests==2.31.0, statistics（Python标准库）</td>
+            </tr>
+            <tr>
+                <td>数据库</td>
+                <td>MySQL（Docker容器）</td>
+            </tr>
+            <tr>
+                <td>测试目标</td>
+                <td>Flask Web应用（运行在 http://127.0.0.1:5000）</td>
+            </tr>
+        </table>
+        
+        <div class="note">
+            <p><strong>注意：</strong>数据库故障恢复测试需要Docker已安装并运行MySQL容器。</p>
+        </div>
+        
+        <h2>3. 测试脚本开发</h2>
+        
+        <div class="test-script">
+            <h3>3.1 数据库故障恢复测试 (test_resilience.py)</h3>
+            <p>此脚本用于测试系统在数据库故障时的弹性和恢复能力。它通过Docker命令停止和启动数据库容器来模拟数据库故障和恢复，并在每个阶段向系统发送请求以验证系统行为。</p>
+            
+            <div class="code-block">
+<pre>import requests
+import time
+import subprocess
+import traceback
+
+def test_db_failure_recovery(db_container_name="mysql_db", max_retries=3):
+    """
+    测试数据库故障时系统的恢复能力
+    
+    Args:
+        db_container_name: 数据库容器名称
+        max_retries: 数据库恢复后的最大重试次数
+    """
+    print("===== 数据库故障恢复测试开始 =====")
+    original_status = None
+    
+    try:
+        # 检查数据库容器是否存在并运行
+        print(f"检查数据库容器 {db_container_name} 状态...")
+        check_result = subprocess.run(
+            ["docker", "ps", "-f", f"name={db_container_name}", "-q"],
+            capture_output=True,
+            text=True
+        )
+        
+        if not check_result.stdout.strip():
+            print(f"警告: 数据库容器 {db_container_name} 似乎未运行或不存在")
+            # 尝试启动容器，而不是停止
+            print(f"尝试启动数据库容器 {db_container_name}...")
+            start_result = subprocess.run(
+                ["docker", "start", db_container_name],
+                capture_output=True,
+                text=True
+            )
+            if start_result.returncode != 0:
+                print(f"错误: 无法启动数据库容器: {start_result.stderr}")
+                print("测试无法继续，建议确保Docker已安装并运行MySQL容器")
+                return False
+            print("数据库容器启动成功，等待初始化...")
+            time.sleep(5)  # 给数据库一些时间初始化
+        else:
+            original_status = "running"
+            # 停止数据库容器模拟故障
+            print(f"停止数据库容器 {db_container_name} 模拟故障...")
+            stop_result = subprocess.run(
+                ["docker", "stop", db_container_name],
+                capture_output=True,
+                text=True
+            )
+            
+            if stop_result.returncode != 0:
+                print(f"错误: 无法停止数据库容器: {stop_result.stderr}")
+                return False
+            
+            print("数据库容器已停止，等待2秒...")
+            time.sleep(2)
+        
+        # 在数据库故障时发送请求，验证系统能够识别错误
+        print("在数据库故障状态下发送请求...")
+        try:
+            res = requests.post(
+                "http://127.0.0.1:5000/order",
+                json={"item": "book", "qty": 1},
+                timeout=10
+            )
+            print(f"响应状态码: {res.status_code}")
+            print(f"响应内容: {res.text[:200]}..." if len(res.text) > 200 else f"响应内容: {res.text}")
+            
+            # 验证系统是否正确返回错误状态码
+            assert res.status_code in (500, 503), \
+                f"期望状态码 500 或 503，但得到 {res.status_code}"
+            print("✓ 系统正确识别了数据库故障")
+            
+        except requests.exceptions.RequestException as e:
+            print(f"✓ 请求异常（预期行为）: {str(e)}")
+        
+        # 恢复数据库
+        if original_status != "running":
+            print(f"数据库容器原本未运行，跳过恢复步骤")
+        else:
+            print(f"恢复数据库容器 {db_container_name}...")
+            start_result = subprocess.run(
+                ["docker", "start", db_container_name],
+                capture_output=True,
+                text=True
+            )
+            
+            if start_result.returncode != 0:
+                print(f"错误: 无法启动数据库容器: {start_result.stderr}")
+                return False
+            
+            print("数据库容器已启动，等待5秒让数据库完全初始化...")
+            time.sleep(5)
+        
+        # 验证系统是否恢复正常
+        print("验证系统恢复状态...")
+        success = False
+        for attempt in range(max_retries):
+            try:
+                res2 = requests.post(
+                    "http://127.0.0.1:5000/order",
+                    json={"item": "book", "qty": 1},
+                    timeout=10
+                )
+                
+                print(f"重试 {attempt + 1}/{max_retries} - 响应状态码: {res2.status_code}")
+                
+                if res2.status_code == 200:
+                    print("✓ 系统成功恢复，订单请求正常处理")
+                    success = True
+                    break
+                elif res2.status_code == 400:
+                    print("✓ 请求格式可能有误，但系统已恢复运行")
+                    success = True
+                    break
+                else:
+                    print(f"系统可能仍在恢复中，状态码: {res2.status_code}")
+                    time.sleep(2)  # 等待更长时间
+                    
+            except requests.exceptions.RequestException as e:
+                print(f"重试 {attempt + 1}/{max_retries} - 请求异常: {str(e)}")
+                time.sleep(2)
+        
+        assert success, "系统未能在规定时间内恢复正常"
+        print("===== 数据库故障恢复测试通过 =====")
+        return True
+        
+    except AssertionError as e:
+        print(f"✗ 测试失败: {str(e)}")
+        return False
+    except Exception as e:
+        print(f"✗ 测试执行出错: {str(e)}")
+        traceback.print_exc()
+        return False
+    finally:
+        # 确保测试结束后数据库处于运行状态
+        try:
+            check_result = subprocess.run(
+                ["docker", "ps", "-f", f"name={db_container_name}", "-q"],
+                capture_output=True,
+                text=True
+            )
+            
+            if not check_result.stdout.strip():
+                print(f"测试结束后，数据库容器 {db_container_name} 未运行，尝试启动...")
+                subprocess.run(["docker", "start", db_container_name], capture_output=True)
+        except Exception:
+            pass
+
+if __name__ == "__main__":
+    # 当直接运行脚本时执行测试
+    print("数据库故障恢复测试")
+    print("测试目的: 验证在数据库故障时系统能否正确报错并在数据库恢复后正常工作")
+    print("\n注意: 此测试需要Docker已安装并运行MySQL容器")
+    
+    # 可以自定义数据库容器名称
+    db_container = input("请输入数据库容器名称 (默认: mysql_db): ") or "mysql_db"
+    
+    test_db_failure_recovery(db_container_name=db_container)
+    
+    print("\n测试完成")
+    print("提示: ")
+    print("1. 确保Flask应用正确配置了数据库连接池和重试机制")
+    print("2. 生产环境建议添加监控和自动恢复机制")
+    print("3. 考虑实现断路器模式来提高系统弹性")</pre>
+            </div>
+        </div>
+        
+        <div class="test-script">
+            <h3>3.2 系统可靠性测试 (test_reliability.py)</h3>
+            <p>此脚本用于测试系统的可靠性和稳定性，通过发送大量并发请求并分析响应。它提供了两种测试模式：标准可靠性测试（固定次数的并发请求）和浸泡测试（长时间稳定负载测试）。</p>
+            
+            <div class="code-block">
+<pre>import time
+import requests
+import traceback
+import statistics
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+def test_reliability(
+    url="http://127.0.0.1:5000/order",
+    payload={"item": "book", "qty": 1},
+    total_requests=1000,
+    concurrent_requests=10,
+    timeout=10
+):
+    """
+    测试系统的可靠性，通过发送大量请求并分析响应
+    
+    Args:
+        url: 测试目标URL
+        payload: 请求体数据
+        total_requests: 总请求次数
+        concurrent_requests: 并发请求数
+        timeout: 单个请求超时时间（秒）
+    """
+    print("===== 系统可靠性测试开始 =====")
+    print(f"测试目标: {url}")
+    print(f"总请求次数: {total_requests}")
+    print(f"并发请求数: {concurrent_requests}")
+    print(f"请求超时: {timeout}秒")
+    
+    # 统计数据收集
+    success_count = 0
+    failed_count = 0
+    status_codes = {}
+    response_times = []
+    errors = []
+    
+    start_time = time.time()
+    
+    def make_request(request_id):
+        """发送单个请求并返回结果"""
+        req_start = time.time()
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=timeout
+            )
+            req_time = time.time() - req_start
+            return {
+                'id': request_id,
+                'success': True,
+                'status_code': response.status_code,
+                'response_time': req_time,
+                'error': None
+            }
+        except requests.exceptions.RequestException as e:
+            req_time = time.time() - req_start
+            return {
+                'id': request_id,
+                'success': False,
+                'status_code': None,
+                'response_time': req_time,
+                'error': str(e)
+            }
+        except Exception as e:
+            req_time = time.time() - req_start
+            return {
+                'id': request_id,
+                'success': False,
+                'status_code': None,
+                'response_time': req_time,
+                'error': f"Unexpected error: {str(e)}"
+            }
+    
+    # 使用线程池进行并发请求
+    print("开始发送请求...")
+    
+    with ThreadPoolExecutor(max_workers=concurrent_requests) as executor:
+        # 提交所有请求
+        future_to_request = {
+            executor.submit(make_request, i): i 
+            for i in range(total_requests)
+        }
+        
+        # 处理请求结果
+        for i, future in enumerate(as_completed(future_to_request)):
+            try:
+                result = future.result()
+                
+                # 更新统计数据
+                if result['success']:
+                    success_count += 1
+                    # 验证状态码是否符合预期
+                    if result['status_code'] in (200, 400):
+                        status_codes[result['status_code']] = \
+                            status_codes.get(result['status_code'], 0) + 1
+                        response_times.append(result['response_time'])
+                    else:
+                        failed_count += 1
+                        errors.append(
+                            f"请求 {result['id']}: 状态码不符合预期 - {result['status_code']}"
+                        )
+                else:
+                    failed_count += 1
+                    errors.append(
+                        f"请求 {result['id']}: {result['error']}"
+                    )
+                
+                # 显示进度
+                if (i + 1) % 100 == 0 or (i + 1) == total_requests:
+                    progress = (i + 1) / total_requests * 100
+                    print(f"进度: {i + 1}/{total_requests} ({progress:.1f}%)")
+                    
+            except Exception as e:
+                failed_count += 1
+                errors.append(f"处理请求结果时出错: {str(e)}")
+    
+    total_time = time.time() - start_time
+    
+    # 计算统计指标
+    success_rate = (success_count / total_requests) * 100 if total_requests > 0 else 0
+    valid_status_rate = sum(status_codes.values()) / total_requests * 100 if total_requests > 0 else 0
+    
+    print("\n===== 测试结果统计 =====")
+    print(f"总运行时长: {total_time:.2f} 秒")
+    print(f"请求完成数: {total_requests}")
+    print(f"成功请求数: {success_count}")
+    print(f"失败请求数: {failed_count}")
+    print(f"成功率: {success_rate:.2f}%")
+    print(f"有效状态码率: {valid_status_rate:.2f}%")
+    
+    # 状态码分布
+    if status_codes:
+        print("\n状态码分布:")
+        for code, count in sorted(status_codes.items()):
+            percentage = (count / total_requests) * 100
+            print(f"  {code}: {count} 次 ({percentage:.2f}%)")
+    
+    # 响应时间统计
+    if response_times:
+        print("\n响应时间统计:")
+        print(f"  最小响应时间: {min(response_times):.4f} 秒")
+        print(f"  最大响应时间: {max(response_times):.4f} 秒")
+        print(f"  平均响应时间: {statistics.mean(response_times):.4f} 秒")
+        print(f"  响应时间中位数: {statistics.median(response_times):.4f} 秒")
+        if len(response_times) > 1:
+            print(f"  响应时间标准差: {statistics.stdev(response_times):.4f} 秒")
+    
+    # 错误样本
+    if errors:
+        print("\n错误样本 (最多显示10个):")
+        for error in errors[:10]:
+            print(f"  - {error}")
+        if len(errors) > 10:
+            print(f"  ... 还有 {len(errors) - 10} 个错误未显示")
+    
+    # 验证测试是否通过
+    test_passed = valid_status_rate >= 99.0  # 99%的请求返回有效状态码
+    
+    if test_passed:
+        print("\n===== 系统可靠性测试通过 =====")
+    else:
+        print("\n===== 系统可靠性测试未通过 =====")
+        print(f"有效状态码率未达到99%的要求")
+    
+    return test_passed
+
+def run_soak_test(
+    url="http://127.0.0.1:5000/order",
+    payload={"item": "book", "qty": 1},
+    duration_minutes=5,
+    requests_per_second=10
+):
+    """
+    运行浸泡测试，在较长时间内以稳定速率发送请求
+    
+    Args:
+        url: 测试目标URL
+        payload: 请求体数据
+        duration_minutes: 测试持续时间（分钟）
+        requests_per_second: 每秒请求数
+    """
+    print("===== 系统浸泡测试开始 =====")
+    print(f"测试目标: {url}")
+    print(f"测试时长: {duration_minutes} 分钟")
+    print(f"请求速率: {requests_per_second} 请求/秒")
+    
+    total_duration = duration_minutes * 60  # 转换为秒
+    interval = 1.0 / requests_per_second  # 请求间隔时间
+    
+    success_count = 0
+    failed_count = 0
+    status_codes = {}
+    response_times = []
+    
+    start_time = time.time()
+    end_time = start_time + total_duration
+    
+    request_id = 0
+    
+    print("开始发送请求...")
+    
+    try:
+        while time.time() < end_time:
+            req_start = time.time()
+            try:
+                response = requests.post(url, json=payload, timeout=10)
+                req_time = time.time() - req_start
+                
+                success_count += 1
+                status_codes[response.status_code] = status_codes.get(response.status_code, 0) + 1
+                response_times.append(req_time)
+                
+                # 每100个请求显示一次进度
+                if success_count % 100 == 0:
+                    elapsed = time.time() - start_time
+                    remaining = max(0, total_duration - elapsed)
+                    print(f"已发送 {success_count} 个请求, 剩余时间约 {remaining:.0f} 秒")
+                    
+            except Exception as e:
+                failed_count += 1
+                
+            request_id += 1
+            
+            # 控制请求速率
+            elapsed = time.time() - req_start
+            if elapsed < interval:
+                time.sleep(interval - elapsed)
+                
+    except KeyboardInterrupt:
+        print("\n测试被用户中断")
+    
+    total_time = time.time() - start_time
+    total_requests = success_count + failed_count
+    
+    print("\n===== 浸泡测试结果 =====")
+    print(f"实际测试时长: {total_time:.2f} 秒")
+    print(f"总请求数: {total_requests}")
+    print(f"成功请求数: {success_count}")
+    print(f"失败请求数: {failed_count}")
+    print(f"平均请求速率: {total_requests/total_time:.2f} 请求/秒")
+    
+    # 状态码分布
+    if status_codes:
+        print("\n状态码分布:")
+        for code, count in sorted(status_codes.items()):
+            percentage = (count / success_count) * 100 if success_count > 0 else 0
+            print(f"  {code}: {count} 次 ({percentage:.2f}%)")
+    
+    # 响应时间统计
+    if response_times:
+        print("\n响应时间统计:")
+        print(f"  平均响应时间: {statistics.mean(response_times):.4f} 秒")
+        print(f"  95%响应时间: {sorted(response_times)[int(len(response_times) * 0.95)]:.4f} 秒")
+        print(f"  99%响应时间: {sorted(response_times)[int(len(response_times) * 0.99)]:.4f} 秒")
+
+if __name__ == "__main__":
+    print("系统可靠性测试")
+    print("测试目的: 通过大量请求验证系统的稳定性和可靠性")
+    print("\n选择测试类型:")
+    print("1. 可靠性测试 (1000次请求，验证状态码)")
+    print("2. 浸泡测试 (长时间稳定负载测试)")
+    
+    try:
+        choice = input("请选择测试类型 (1-2): ")
+        
+        if choice == "1":
+            # 运行标准可靠性测试
+            test_reliability()
+        elif choice == "2":
+            # 运行浸泡测试
+            try:
+                duration = int(input("请输入测试时长(分钟): ") or "5")
+                rate = int(input("请输入每秒请求数: ") or "10")
+                run_soak_test(duration_minutes=duration, requests_per_second=rate)
+            except ValueError:
+                print("输入无效，使用默认参数运行浸泡测试")
+                run_soak_test()
+        else:
+            print("选择无效，运行标准可靠性测试")
+            test_reliability()
+            
+    except Exception as e:
+        print(f"运行测试时出错: {str(e)}")
+        traceback.print_exc()
+    
+    print("\n测试完成")
+    print("提示: ")
+    print("1. 确保Flask应用配置了适当的连接池和超时设置")
+    print("2. 监控系统资源使用情况，特别是内存和CPU")
+    print("3. 考虑使用专业负载测试工具如JMeter或Locust进行更复杂的测试")</pre>
+            </div>
+        </div>
+        
+        <h2>4. 测试执行方法</h2>
+        
+        <div class="two-column">
+            <div class="column">
+                <h3>4.1 安装依赖</h3>
+                <div class="code-block">
+<pre># 安装测试所需的Python依赖
+pip install -r requirements-reliability.txt</pre>
+                </div>
+                
+                <h3>4.2 运行数据库故障恢复测试</h3>
+                <div class="code-block">
+<pre># 确保Docker已安装并运行
+# 确保Flask应用已启动 (http://127.0.0.1:5000)
+
+# 运行数据库故障恢复测试
+python test_resilience.py
+
+# 也可以指定数据库容器名称
+python test_resilience.py</pre>
+                </div>
+                <div class="note">
+                    <p><strong>注意：</strong>运行此测试前，请确保Docker已安装并运行MySQL容器。</p>
+                </div>
+            </div>
+            
+            <div class="column">
+                <h3>4.3 运行系统可靠性测试</h3>
+                <div class="code-block">
+<pre># 确保Flask应用已启动 (http://127.0.0.1:5000)
+
+# 运行系统可靠性测试
+python test_reliability.py
+
+# 在测试开始时，选择测试类型：
+# 1. 标准可靠性测试 (1000次请求)
+# 2. 浸泡测试 (可自定义测试时长和请求速率)</pre>
+                </div>
+                
+                <div class="highlight">
+                    <h3>测试执行前置条件</h3>
+                    <ol>
+                        <li>安装Python 3.7或更高版本</li>
+                        <li>安装所需依赖包</li>
+                        <li>启动Flask Web应用</li>
+                        <li>对于数据库故障恢复测试，还需安装Docker并运行MySQL容器</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <h2>5. 测试结果分析</h2>
+        
+        <h3>5.1 数据库故障恢复测试</h3>
+        
+        <div class="success">
+            <h4>测试通过场景</h4>
+            <p>当测试通过时，输出将类似于：</p>
+            <div class="code-block">
+<pre>===== 数据库故障恢复测试开始 =====
+检查数据库容器 mysql_db 状态...
+停止数据库容器 mysql_db 模拟故障...
+数据库容器已停止，等待2秒...
+在数据库故障状态下发送请求...
+响应状态码: 500
+响应内容: Internal Server Error
+✓ 系统正确识别了数据库故障
+恢复数据库容器 mysql_db...
+数据库容器已启动，等待5秒让数据库完全初始化...
+验证系统恢复状态...
+重试 1/3 - 响应状态码: 200
+✓ 系统成功恢复，订单请求正常处理
+===== 数据库故障恢复测试通过 =====</pre>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <h4>测试失败场景</h4>
+            <p>当测试失败时，可能的原因包括：</p>
+            <ul>
+                <li><strong>Docker相关错误：</strong>无法停止或启动数据库容器</li>
+                <li><strong>系统错误处理不当：</strong>数据库故障时未返回500/503状态码</li>
+                <li><strong>系统恢复失败：</strong>数据库恢复后，系统未能在规定时间内正常响应</li>
+                <li><strong>连接错误：</strong>无法连接到Flask应用</li>
+            </ul>
+        </div>
+        
+        <h3>5.2 系统可靠性测试</h3>
+        
+        <div class="code-block">
+<pre>===== 系统可靠性测试结果示例 =====
+总运行时长: 15.67 秒
+请求完成数: 1000
+成功请求数: 998
+失败请求数: 2
+成功率: 99.80%
+有效状态码率: 99.80%
+
+状态码分布:
+  200: 950 次 (95.00%)
+  400: 48 次 (4.80%)
+
+响应时间统计:
+  最小响应时间: 0.0123 秒
+  最大响应时间: 0.5678 秒
+  平均响应时间: 0.0345 秒
+  响应时间中位数: 0.0289 秒
+  响应时间标准差: 0.0456 秒
+
+===== 系统可靠性测试通过 =====</pre>
+        </div>
+        
+        <h4>关键指标分析</h4>
+        <table>
+            <tr>
+                <th>指标</th>
+                <th>说明</th>
+                <th>建议阈值</th>
+            </tr>
+            <tr>
+                <td>有效状态码率</td>
+                <td>返回200或400状态码的请求百分比</td>
+                <td>>= 99%</td>
+            </tr>
+            <tr>
+                <td>平均响应时间</td>
+                <td>所有请求的平均处理时间</td>
+                <td>< 0.1秒</td>
+            </tr>
+            <tr>
+                <td>最大响应时间</td>
+                <td>单个请求的最长处理时间</td>
+                <td>< 1秒</td>
+            </tr>
+            <tr>
+                <td>响应时间标准差</td>
+                <td>响应时间的波动程度</td>
+                <td>越小越好</td>
+            </tr>
+        </table>
+        
+        <h2>6. 安全建议</h2>
+        
+        <ul>
+            <li><strong>数据库连接池配置：</strong>确保Flask应用正确配置了数据库连接池，设置合理的最大连接数和超时时间</li>
+            <li><strong>错误处理和日志记录：</strong>实现全局异常处理器，记录详细的错误日志便于排查问题</li>
+            <li><strong>断路器模式：</strong>实现断路器模式，当检测到数据库故障时，快速失败而不是持续尝试连接</li>
+            <li><strong>监控和告警：</strong>部署监控系统，对数据库连接、系统响应时间等指标进行实时监控</li>
+            <li><strong>限流保护：</strong>实现API限流机制，防止系统被过多请求压垮</li>
+            <li><strong>负载均衡：</strong>对于高并发场景，考虑使用负载均衡分散请求压力</li>
+        </ul>
+        
+        <h2>7. 总结与结论</h2>
+        
+        <p>本报告详细介绍了系统弹性和可靠性测试的方法、实现和结果分析。通过数据库故障恢复测试，我们验证了系统在遇到数据库故障时能否正确处理错误并在故障恢复后恢复正常运行。通过系统可靠性测试，我们评估了系统在高负载情况下的稳定性和性能表现。</p>
+        
+        <p>理想的测试结果应该满足以下条件：</p>
+        <ol>
+            <li>数据库故障恢复测试：系统在数据库故障时返回500/503状态码，数据库恢复后能够正常处理请求</li>
+            <li>系统可靠性测试：有效状态码率达到99%以上，平均响应时间在合理范围内</li>
+        </ol>
+        
+        <p>通过这些测试，我们可以及早发现系统中的潜在问题，提高系统的稳定性和可靠性，为用户提供更好的服务体验。</p>
+        
+        <h2>8. 附录</h2>
+        
+        <h3>8.1 依赖文件 (requirements-reliability.txt)</h3>
+        <div class="code-block">
+<pre># 系统弹性和可靠性测试依赖
+requests==2.31.0
+statistics  # Python标准库，无需安装</pre>
+        </div>
+        
+        <h3>8.2 常见问题与解决方案</h3>
+        
+        <table>
+            <tr>
+                <th>问题</th>
+                <th>可能原因</th>
+                <th>解决方案</th>
+            </tr>
+            <tr>
+                <td>无法连接到数据库容器</td>
+                <td>Docker未启动或容器不存在</td>
+                <td>检查Docker服务是否运行，确认容器名称正确</td>
+            </tr>
+            <tr>
+                <td>无法连接到Flask应用</td>
+                <td>应用未启动或端口错误</td>
+                <td>确保Flask应用在http://127.0.0.1:5000上运行</td>
+            </tr>
+            <tr>
+                <td>测试过程中出现大量失败请求</td>
+                <td>系统负载过高或资源不足</td>
+                <td>减少并发请求数，增加系统资源</td>
+            </tr>
+            <tr>
+                <td>数据库恢复后系统未恢复</td>
+                <td>连接池配置问题或未实现重试机制</td>
+                <td>检查Flask应用的数据库连接配置</td>
+            </tr>
+        </table>
+        
+        <h3>8.3 后续优化建议</h3>
+        <ul>
+            <li>实现自动扩缩容机制，根据负载自动调整资源</li>
+            <li>部署多活架构，提高系统可用性</li>
+            <li>使用专业的监控和告警工具，如Prometheus和Grafana</li>
+            <li>进行更复杂的灾难恢复演练，测试不同故障场景</li>
+            <li>优化数据库查询，提高系统响应速度</li>
+        </ul>
+    </div>
+</body>
+</html>
